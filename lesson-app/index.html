@@ -82,8 +82,8 @@
   <div class="app">
     <header>
       <a class="brand" href="../" style="color:inherit;text-decoration:none"><div class="mark">日</div><strong>Embrace Japan</strong></a>
-      <h1>Japanese Mini Quiz</h1>
-      <p>For beginners. Practice hiragana, katakana, and daily conversation.</p>
+      <h1 id="appTitle">Japanese Mini Quiz</h1>
+      <p id="appIntro">For beginners. Practice hiragana, katakana, and daily conversation.</p>
     </header>
 
     <main>
@@ -101,21 +101,23 @@
       </section>
 
       <section class="result" id="result">
-        <h2>Quiz complete!</h2>
+        <h2 id="completeTitle">Quiz complete!</h2>
         <div class="score" id="finalScore"></div>
         <p id="finalMessage"></p>
         <div class="actions" style="justify-content:center">
           <button class="ghost" id="restartBtn">Try again</button>
-          <a class="cta" id="bookLink" href="#" target="_blank" rel="noreferrer"><button class="secondary">Book a free lesson</button></a>
+          <a class="cta" id="bookLink" href="#" target="_blank" rel="noreferrer"><button class="secondary" id="bookBtn">Book a free lesson</button></a>
         </div>
       </section>
     </main>
-    <footer><a href="../" style="color:inherit">← Back to Embrace Japan</a><br>Japanese / English / Indonesian / Vietnamese — with Miyake-sensei</footer>
+    <footer><a id="backLink" href="../" style="color:inherit">← Back to Embrace Japan</a><br>Japanese / English / Indonesian / Vietnamese — with Miyake-sensei</footer>
   </div>
 
   <script>
     const bookingUrl = "https://calendar.app.google/xk9TVfJy4Mg6ZjyZ7";
-    const questions = [
+    const lang = new URLSearchParams(location.search).get("lang") || "en";
+    const isVietnamese = lang === "vi";
+    const questionsDefault = [
       { q: "ありがとう means...?", hint: "Choose the correct meaning.", choices: ["Terima kasih", "Selamat pagi", "Maaf"], answer: 0, explain: "Correct! ありがとう = thank you." },
       { q: "Which one is hiragana?", hint: "Hiragana is the soft Japanese script.", choices: ["ア", "あ", "A"], answer: 1, explain: "Benar! あ is hiragana. ア is katakana." },
       { q: "おはよう means...?", hint: "Used in the morning.", choices: ["Good night", "Good morning", "Goodbye"], answer: 1, explain: "Benar! おはよう = good morning." },
@@ -127,6 +129,19 @@
       { q: "いいえ means...?", hint: "The opposite of はい.", choices: ["No", "Hello", "Please"], answer: 0, explain: "Benar! いいえ = no." },
       { q: "またね means...?", hint: "Casual phrase with friends.", choices: ["See you", "I'm sorry", "Delicious"], answer: 0, explain: "Benar! またね = see you." }
     ];
+    const questionsVietnamese = [
+      { q: "ありがとう có nghĩa là gì?", hint: "Chọn nghĩa đúng.", choices: ["Cảm ơn", "Chào buổi sáng", "Xin lỗi"], answer: 0, explain: "Đúng! ありがとう có nghĩa là cảm ơn." },
+      { q: "Chữ nào là hiragana?", hint: "Hiragana là hệ chữ mềm của tiếng Nhật.", choices: ["ア", "あ", "A"], answer: 1, explain: "Đúng! あ là hiragana, còn ア là katakana." },
+      { q: "おはよう có nghĩa là gì?", hint: "Dùng vào buổi sáng.", choices: ["Chúc ngủ ngon", "Chào buổi sáng", "Tạm biệt"], answer: 1, explain: "Đúng! おはよう có nghĩa là chào buổi sáng." },
+      { q: "カ thuộc loại chữ nào?", hint: "Chọn loại chữ đúng.", choices: ["Hiragana", "Katakana", "Kanji"], answer: 1, explain: "Đúng! カ là katakana." },
+      { q: "すみません được dùng khi nào?", hint: "Đây là một cụm từ rất phổ biến.", choices: ["Xin lỗi / làm phiền", "Ngon", "Hẹn gặp lại"], answer: 0, explain: "Đúng! すみません có nghĩa là xin lỗi hoặc làm phiền." },
+      { q: "こんばんは có nghĩa là gì?", hint: "Dùng vào buổi tối.", choices: ["Chào buổi tối", "Chào buổi sáng", "Cảm ơn"], answer: 0, explain: "Đúng! こんばんは có nghĩa là chào buổi tối." },
+      { q: "Chữ nào là katakana?", hint: "Katakana thường được dùng cho từ mượn nước ngoài.", choices: ["か", "カ", "火"], answer: 1, explain: "Đúng! カ là katakana, còn か là hiragana." },
+      { q: "はい có nghĩa là gì?", hint: "Một từ trả lời rất cơ bản.", choices: ["Không", "Có / Vâng", "Có lẽ"], answer: 1, explain: "Đúng! はい có nghĩa là có hoặc vâng." },
+      { q: "いいえ có nghĩa là gì?", hint: "Từ trái nghĩa với はい.", choices: ["Không", "Xin chào", "Làm ơn"], answer: 0, explain: "Đúng! いいえ có nghĩa là không." },
+      { q: "またね có nghĩa là gì?", hint: "Cách nói thân mật với bạn bè.", choices: ["Hẹn gặp lại", "Tôi xin lỗi", "Ngon"], answer: 0, explain: "Đúng! またね có nghĩa là hẹn gặp lại." }
+    ];
+    const questions = isVietnamese ? questionsVietnamese : questionsDefault;
 
     let index = 0;
     let score = 0;
@@ -134,12 +149,24 @@
 
     const $ = (id) => document.getElementById(id);
     $("bookLink").href = bookingUrl;
+    if (isVietnamese) {
+      document.documentElement.lang = "vi";
+      $("appTitle").textContent = "Bài trắc nghiệm tiếng Nhật";
+      $("appIntro").textContent = "Dành cho người mới bắt đầu. Luyện hiragana, katakana và hội thoại hằng ngày.";
+      $("completeTitle").textContent = "Hoàn thành bài trắc nghiệm!";
+      $("nextBtn").textContent = "Tiếp theo";
+      $("restartBtn").textContent = "Làm lại";
+      $("bookBtn").textContent = "Đặt buổi học miễn phí";
+      $("backLink").textContent = "← Quay lại Embrace Japan";
+      $("backLink").href = "../?lang=vi";
+      document.querySelector("header .brand").href = "../?lang=vi";
+    }
 
     function render() {
       locked = false;
       const item = questions[index];
-      $("count").textContent = `Question ${index + 1}/${questions.length}`;
-      $("scoreText").textContent = `Score ${score}`;
+      $("count").textContent = isVietnamese ? `Câu ${index + 1}/${questions.length}` : `Question ${index + 1}/${questions.length}`;
+      $("scoreText").textContent = isVietnamese ? `Điểm ${score}` : `Score ${score}`;
       $("bar").style.width = `${(index / questions.length) * 100}%`;
       $("question").textContent = item.q;
       $("hint").textContent = item.hint;
@@ -166,9 +193,9 @@
         $("feedback").textContent = item.explain;
       } else {
         buttons[i].classList.add("wrong");
-        $("feedback").textContent = `Almost! Correct answer: ${item.choices[item.answer]}`;
+        $("feedback").textContent = isVietnamese ? `Chưa đúng. Đáp án đúng: ${item.choices[item.answer]}` : `Almost! Correct answer: ${item.choices[item.answer]}`;
       }
-      $("scoreText").textContent = `Score ${score}`;
+      $("scoreText").textContent = isVietnamese ? `Điểm ${score}` : `Score ${score}`;
       $("nextBtn").style.display = "inline-block";
     }
 
@@ -177,7 +204,7 @@
       $("quiz").style.display = "none";
       $("result").style.display = "block";
       $("finalScore").textContent = `${score}/${questions.length}`;
-      $("finalMessage").textContent = score >= 4 ? "Great! Kamu siap belajar lebih lanjut." : "Good start! Ayo coba lagi dan belajar pelan-pelan.";
+      $("finalMessage").textContent = isVietnamese ? (score >= 4 ? "Tuyệt vời! Bạn đã sẵn sàng học thêm." : "Khởi đầu tốt! Hãy thử lại và học từng bước nhé.") : (score >= 4 ? "Great! Kamu siap belajar lebih lanjut." : "Good start! Ayo coba lagi dan belajar pelan-pelan.");
     }
 
     $("nextBtn").onclick = () => {
